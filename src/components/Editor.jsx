@@ -1,7 +1,8 @@
 import React from "react"
 import ReactMde from "react-mde"
 import Showdown from "showdown"
-import "react-mde/lib/styles/css/react-mde-all.css"
+import "react-mde/lib/styles/css/react-mde-all.css" //isso foi a unica coisa que ajustou o css pra ficar bonitinho
+
 export default function Editor({ currentNote, updateNote }) {
     const [selectedTab, setSelectedTab] = React.useState("write")
 

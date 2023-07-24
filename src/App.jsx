@@ -6,12 +6,21 @@ import Split from "react-split"
 import {nanoid} from "nanoid"
 import "./index.css"
 
+//a library mde nao funciona mais no react 18, entao o truque foi fazer isso:
+//npm i react-mde --legacy-peer-deps
+
 export default function App() {
-    const [notes, setNotes] = React.useState([])
+    const [notes, setNotes] = React.useState(
+        JSON.parse(localStorage.getItem("notes")) || [])
     const [currentNoteId, setCurrentNoteId] = React.useState(
         (notes[0] && notes[0].id) || ""
     )
     
+    React.useEffect(() => {
+        
+        localStorage.setItem("notes", JSON.stringify(notes))
+    }, [notes])
+
     function createNewNote() {
         const newNote = {
             id: nanoid(),
