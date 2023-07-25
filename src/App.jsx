@@ -1,11 +1,13 @@
 import React from "react"
 import Sidebar from "./components/Sidebar"
 import Editor from "./components/Editor"
-import { data } from "./data"
 import Split from "react-split"
 import {nanoid} from "nanoid"
 import "./index.css"
+import { onSnapshot } from "firebase/firestore"
+import { notesCollection } from "./firebase.js"
 
+//firebase.initializeApp(firebaseConfig);
 //a library mde nao funciona mais no react 18, entao o truque foi fazer isso:
 //npm i react-mde --legacy-peer-deps
 
@@ -17,9 +19,21 @@ export default function App() {
         (notes[0] && notes[0].id) || ""
     )
     
-    React.useEffect(() => {
-        localStorage.setItem("notes", JSON.stringify(notes))
-    }, [notes])
+    const currentNote = 
+        notes.find(note => note.id === currentNoteId) 
+        || notes[0]
+    
+        React.useEffect(() => {
+            const unsubscribe = onSnapshot(notesCollection, function(snapshot) {
+                // Sync up our local notes array with the snapshot data
+                const notesArr = snapshot.docs.map(doc => ({
+                    ...doc.data(),
+                    id: doc.id
+                }))
+                setNotes(notesArr)
+            })
+            return unsubscribe
+        }, [])
     
     function createNewNote() {
         const newNote = {
@@ -46,28 +60,12 @@ export default function App() {
         })
     }
     
-    /**
-     * Challenge: complete and implement the deleteNote function
-     * 
-     * Hints: 
-     * 1. What array method can be used to return a new
-     *    array that has filtered out an item based 
-     *    on a condition?
-     * 2. Notice the parameters being based to the function
-     *    and think about how both of those parameters
-     *    can be passed in during the onClick event handler
-     */
-    
+
     function deleteNote(event, noteId) {
         event.stopPropagation()
         setNotes(oldNotes => oldNotes.filter(note => note.id !== noteId))
     }
     
-    function findCurrentNote() {
-        return notes.find(note => {
-            return note.id === currentNoteId
-        }) || notes[0]
-    }
     
     return (
         <main>
@@ -81,7 +79,7 @@ export default function App() {
             >
                 <Sidebar
                     notes={notes}
-                    currentNote={findCurrentNote()}
+                    currentNote={currentNote}
                     setCurrentNoteId={setCurrentNoteId}
                     newNote={createNewNote}
                     deleteNote={deleteNote}
@@ -90,7 +88,7 @@ export default function App() {
                     currentNoteId && 
                     notes.length > 0 &&
                     <Editor 
-                        currentNote={findCurrentNote()} 
+                        currentNote={currentNote} 
                         updateNote={updateNote} 
                     />
                 }
